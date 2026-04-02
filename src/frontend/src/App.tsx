@@ -54,20 +54,6 @@ function formatBigIntFull(n: bigint): string {
   return result;
 }
 
-function formatDateTime(date: Date, tz: string): string {
-  return date.toLocaleString("en-US", {
-    timeZone: tz,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-    fractionalSecondDigits: 3,
-  });
-}
-
 function formatUTCFull(date: Date): string {
   const y = date.getUTCFullYear();
   const mo = String(date.getUTCMonth() + 1).padStart(2, "0");
@@ -108,48 +94,6 @@ function planckToUnixMs(planck: bigint): number {
   const ms = (planck * 1000n) / INVERSE_PLANCK_BIG;
   return Number(ms);
 }
-
-// All GMT offsets from -12 to +14
-const GMT_ZONES: { label: string; tz: string; offset: number }[] = [
-  { label: "GMT-12", tz: "Etc/GMT+12", offset: -12 },
-  { label: "GMT-11", tz: "Etc/GMT+11", offset: -11 },
-  { label: "GMT-10", tz: "Etc/GMT+10", offset: -10 },
-  { label: "GMT-9:30", tz: "Pacific/Marquesas", offset: -9.5 },
-  { label: "GMT-9", tz: "Etc/GMT+9", offset: -9 },
-  { label: "GMT-8", tz: "Etc/GMT+8", offset: -8 },
-  { label: "GMT-7", tz: "Etc/GMT+7", offset: -7 },
-  { label: "GMT-6", tz: "Etc/GMT+6", offset: -6 },
-  { label: "GMT-5", tz: "Etc/GMT+5", offset: -5 },
-  { label: "GMT-4", tz: "Etc/GMT+4", offset: -4 },
-  { label: "GMT-3:30", tz: "Canada/Newfoundland", offset: -3.5 },
-  { label: "GMT-3", tz: "Etc/GMT+3", offset: -3 },
-  { label: "GMT-2", tz: "Etc/GMT+2", offset: -2 },
-  { label: "GMT-1", tz: "Etc/GMT+1", offset: -1 },
-  { label: "GMT+0", tz: "Etc/GMT", offset: 0 },
-  { label: "GMT+1", tz: "Etc/GMT-1", offset: 1 },
-  { label: "GMT+2", tz: "Etc/GMT-2", offset: 2 },
-  { label: "GMT+3", tz: "Etc/GMT-3", offset: 3 },
-  { label: "GMT+3:30", tz: "Asia/Tehran", offset: 3.5 },
-  { label: "GMT+4", tz: "Etc/GMT-4", offset: 4 },
-  { label: "GMT+4:30", tz: "Asia/Kabul", offset: 4.5 },
-  { label: "GMT+5", tz: "Etc/GMT-5", offset: 5 },
-  { label: "GMT+5:30", tz: "Asia/Kolkata", offset: 5.5 },
-  { label: "GMT+5:45", tz: "Asia/Kathmandu", offset: 5.75 },
-  { label: "GMT+6", tz: "Etc/GMT-6", offset: 6 },
-  { label: "GMT+6:30", tz: "Asia/Yangon", offset: 6.5 },
-  { label: "GMT+7", tz: "Etc/GMT-7", offset: 7 },
-  { label: "GMT+8", tz: "Etc/GMT-8", offset: 8 },
-  { label: "GMT+8:45", tz: "Australia/Eucla", offset: 8.75 },
-  { label: "GMT+9", tz: "Etc/GMT-9", offset: 9 },
-  { label: "GMT+9:30", tz: "Australia/Darwin", offset: 9.5 },
-  { label: "GMT+10", tz: "Etc/GMT-10", offset: 10 },
-  { label: "GMT+10:30", tz: "Australia/Lord_Howe", offset: 10.5 },
-  { label: "GMT+11", tz: "Etc/GMT-11", offset: 11 },
-  { label: "GMT+12", tz: "Etc/GMT-12", offset: 12 },
-  { label: "GMT+12:45", tz: "Pacific/Chatham", offset: 12.75 },
-  { label: "GMT+13", tz: "Etc/GMT-13", offset: 13 },
-  { label: "GMT+14", tz: "Etc/GMT-14", offset: 14 },
-];
 
 interface ClockState {
   planckBig: bigint;
@@ -444,13 +388,6 @@ export default function App() {
               value={`${unixNsStr} (ns, est.)`}
             />
             <ClockRow label="UTC" value={utcStr} />
-            {GMT_ZONES.map((zone) => (
-              <ClockRow
-                key={zone.label}
-                label={zone.label}
-                value={formatDateTime(clock.date, zone.tz)}
-              />
-            ))}
           </CardContent>
         </Card>
 
@@ -522,13 +459,6 @@ export default function App() {
                     label="UTC"
                     value={formatUTCFull(planckResult.date)}
                   />
-                  {GMT_ZONES.map((zone) => (
-                    <ClockRow
-                      key={zone.label}
-                      label={zone.label}
-                      value={formatDateTime(planckResult.date, zone.tz)}
-                    />
-                  ))}
                 </div>
               )}
             </CardContent>
