@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.25rem;
+    /* Plain black on white */
+    --background: 1 0 0;
+    --foreground: 0 0 0;
+    --card: 1 0 0;
+    --card-foreground: 0 0 0;
+    --popover: 1 0 0;
+    --popover-foreground: 0 0 0;
+    --primary: 0 0 0;
+    --primary-foreground: 1 0 0;
+    --secondary: 0.95 0 0;
+    --secondary-foreground: 0 0 0;
+    --muted: 0.95 0 0;
+    --muted-foreground: 0.4 0 0;
+    --accent: 0 0 0;
+    --accent-foreground: 1 0 0;
+    --destructive: 0.45 0.2 25;
+    --destructive-foreground: 1 0 0;
+    --border: 0.8 0 0;
+    --input: 0.8 0 0;
+    --ring: 0 0 0;
+    --chart-1: 0 0 0;
+    --chart-2: 0.4 0 0;
+    --chart-3: 0.6 0 0;
+    --chart-4: 0.2 0 0;
+    --chart-5: 0.7 0 0;
+    --sidebar: 1 0 0;
+    --sidebar-foreground: 0 0 0;
+    --sidebar-primary: 0 0 0;
+    --sidebar-primary-foreground: 1 0 0;
+    --sidebar-accent: 0.95 0 0;
+    --sidebar-accent-foreground: 0 0 0;
+    --sidebar-border: 0.8 0 0;
+    --sidebar-ring: 0 0 0;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    font-size: 8px;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+
+  .font-mono {
+    font-family: "Courier New", Courier, monospace;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #fff;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #999;
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.blink {
+  animation: blink 1.5s ease-in-out infinite;
+}
