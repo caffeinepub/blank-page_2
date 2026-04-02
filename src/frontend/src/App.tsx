@@ -12,11 +12,9 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowRightLeft,
   Clock,
-  Code2,
   Copy,
   History,
   Info,
@@ -110,6 +108,48 @@ function planckToUnixMs(planck: bigint): number {
   const ms = (planck * 1000n) / INVERSE_PLANCK_BIG;
   return Number(ms);
 }
+
+// All GMT offsets from -12 to +14
+const GMT_ZONES: { label: string; tz: string; offset: number }[] = [
+  { label: "GMT-12", tz: "Etc/GMT+12", offset: -12 },
+  { label: "GMT-11", tz: "Etc/GMT+11", offset: -11 },
+  { label: "GMT-10", tz: "Etc/GMT+10", offset: -10 },
+  { label: "GMT-9:30", tz: "Pacific/Marquesas", offset: -9.5 },
+  { label: "GMT-9", tz: "Etc/GMT+9", offset: -9 },
+  { label: "GMT-8", tz: "Etc/GMT+8", offset: -8 },
+  { label: "GMT-7", tz: "Etc/GMT+7", offset: -7 },
+  { label: "GMT-6", tz: "Etc/GMT+6", offset: -6 },
+  { label: "GMT-5", tz: "Etc/GMT+5", offset: -5 },
+  { label: "GMT-4", tz: "Etc/GMT+4", offset: -4 },
+  { label: "GMT-3:30", tz: "Canada/Newfoundland", offset: -3.5 },
+  { label: "GMT-3", tz: "Etc/GMT+3", offset: -3 },
+  { label: "GMT-2", tz: "Etc/GMT+2", offset: -2 },
+  { label: "GMT-1", tz: "Etc/GMT+1", offset: -1 },
+  { label: "GMT+0", tz: "Etc/GMT", offset: 0 },
+  { label: "GMT+1", tz: "Etc/GMT-1", offset: 1 },
+  { label: "GMT+2", tz: "Etc/GMT-2", offset: 2 },
+  { label: "GMT+3", tz: "Etc/GMT-3", offset: 3 },
+  { label: "GMT+3:30", tz: "Asia/Tehran", offset: 3.5 },
+  { label: "GMT+4", tz: "Etc/GMT-4", offset: 4 },
+  { label: "GMT+4:30", tz: "Asia/Kabul", offset: 4.5 },
+  { label: "GMT+5", tz: "Etc/GMT-5", offset: 5 },
+  { label: "GMT+5:30", tz: "Asia/Kolkata", offset: 5.5 },
+  { label: "GMT+5:45", tz: "Asia/Kathmandu", offset: 5.75 },
+  { label: "GMT+6", tz: "Etc/GMT-6", offset: 6 },
+  { label: "GMT+6:30", tz: "Asia/Yangon", offset: 6.5 },
+  { label: "GMT+7", tz: "Etc/GMT-7", offset: 7 },
+  { label: "GMT+8", tz: "Etc/GMT-8", offset: 8 },
+  { label: "GMT+8:45", tz: "Australia/Eucla", offset: 8.75 },
+  { label: "GMT+9", tz: "Etc/GMT-9", offset: 9 },
+  { label: "GMT+9:30", tz: "Australia/Darwin", offset: 9.5 },
+  { label: "GMT+10", tz: "Etc/GMT-10", offset: 10 },
+  { label: "GMT+10:30", tz: "Australia/Lord_Howe", offset: 10.5 },
+  { label: "GMT+11", tz: "Etc/GMT-11", offset: 11 },
+  { label: "GMT+12", tz: "Etc/GMT-12", offset: 12 },
+  { label: "GMT+12:45", tz: "Pacific/Chatham", offset: 12.75 },
+  { label: "GMT+13", tz: "Etc/GMT-13", offset: 13 },
+  { label: "GMT+14", tz: "Etc/GMT-14", offset: 14 },
+];
 
 interface ClockState {
   planckBig: bigint;
@@ -226,7 +266,6 @@ export default function App() {
   const unixUsStr = (BigInt(clock.unixMs) * 1000n).toString();
   const unixNsStr = (BigInt(clock.unixMs) * 1000000n).toString();
   const utcStr = formatUTCFull(clock.date);
-  const gmt4Str = `${formatDateTime(clock.date, "America/New_York")} EST`;
   const planckDisplay = sciMode
     ? formatBigIntSci(clock.planckBig, 15)
     : formatBigIntFull(clock.planckBig);
@@ -306,93 +345,6 @@ export default function App() {
 
   const tickerRef = useRef<HTMLSpanElement>(null);
 
-  const pythonCode = `import time
-import decimal
-
-# Planck time in seconds (exact to available precision)
-PLANCK_TIME_S = 5.391247e-44  # seconds
-
-def unix_to_planck_float(unix_seconds: float) -> int:
-    """Fast approximation — loses precision beyond ~15 significant digits."""
-    return int(unix_seconds / PLANCK_TIME_S)
-
-
-def unix_to_planck_precise(unix_ms: int) -> int:
-    """
-    High-precision version using integer arithmetic at millisecond resolution.
-    INVERSE_PLANCK_PER_S ≈ 1.8549e+43 (1 / 5.391247e-44)
-    """
-    INVERSE_PLANCK_PER_S = 18_549_000_000_000_000_000_000_000_000_000_000_000_000_000
-    return (unix_ms * INVERSE_PLANCK_PER_S) // 1000
-
-
-def unix_to_planck_decimal(unix_seconds: float) -> decimal.Decimal:
-    """Highest precision using Python's Decimal module."""
-    decimal.getcontext().prec = 60
-    t_P = decimal.Decimal('5.391247e-44')
-    return decimal.Decimal(str(unix_seconds)) / t_P
-
-
-# Example usage
-unix_s = time.time()
-unix_ms = int(unix_s * 1000)
-
-print(f"Unix seconds:  {unix_s:.3f}")
-print(f"Planck (fast): {unix_to_planck_float(unix_s):.4e}")
-print(f"Planck (int):  {unix_to_planck_precise(unix_ms)}")
-print(f"Planck (dec):  {unix_to_planck_decimal(unix_s):.6e}")`;
-
-  const jsCode = `// Planck time converter using BigInt for high precision
-// t_P ≈ 5.391247e-44 seconds → 1/t_P ≈ 1.8549e+43 per second
-
-const INVERSE_PLANCK_PER_S = 18549000000000000000000000000000000000000000n;
-
-function unixToPlanck(unixMs) {
-  return (BigInt(Math.floor(unixMs)) * INVERSE_PLANCK_PER_S) / 1000n;
-}
-
-function planckToUnixMs(planck) {
-  return Number((planck * 1000n) / INVERSE_PLANCK_PER_S);
-}
-
-function toScientific(n, digits = 10) {
-  const s = n.toString();
-  const exp = s.length - 1;
-  return s[0] + '.' + s.slice(1, digits) + ' × 10^' + exp;
-}
-
-const now = Date.now();
-const planck = unixToPlanck(now);
-console.log('Unix ms:    ', now);
-console.log('Planck:     ', planck.toString());
-console.log('Scientific: ', toScientific(planck));
-console.log('Round-trip: ', planckToUnixMs(planck), 'ms');`;
-
-  const rustCode = `use std::time::{SystemTime, UNIX_EPOCH};
-
-// For full precision, use the 'num-bigint' crate.
-// u128 max is ~3.4e38; real Planck timestamps need num-bigint.
-
-/// With num-bigint crate for full precision:
-/// use num_bigint::BigUint;
-///
-/// fn unix_ms_to_planck(unix_ms: u64) -> BigUint {
-///     let scale = BigUint::parse_bytes(
-///         b"18549000000000000000000000000000000000000000",
-///         10
-///     ).unwrap();
-///     BigUint::from(unix_ms) * scale / 1000u32
-/// }
-
-fn main() {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap();
-    let unix_ms = now.as_millis() as u64;
-    println!("Unix ms: {}", unix_ms);
-    println!("Note: Use 'num-bigint' crate for full ~60-digit precision.");
-}`;
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Toaster position="top-right" />
@@ -409,7 +361,7 @@ fn main() {
                   fontSize: "8px",
                 }}
               >
-                SMIMS Time Converter
+                Planck Time Converter
               </h1>
               <p
                 className="text-muted-foreground"
@@ -492,7 +444,13 @@ fn main() {
               value={`${unixNsStr} (ns, est.)`}
             />
             <ClockRow label="UTC" value={utcStr} />
-            <ClockRow label="GMT-4 / Eastern" value={gmt4Str} />
+            {GMT_ZONES.map((zone) => (
+              <ClockRow
+                key={zone.label}
+                label={zone.label}
+                value={formatDateTime(clock.date, zone.tz)}
+              />
+            ))}
           </CardContent>
         </Card>
 
@@ -564,18 +522,13 @@ fn main() {
                     label="UTC"
                     value={formatUTCFull(planckResult.date)}
                   />
-                  <ClockRow
-                    label="GMT-4 / Eastern"
-                    value={`${formatDateTime(planckResult.date, "America/New_York")} EST`}
-                  />
-                  <ClockRow
-                    label="PST"
-                    value={`${formatDateTime(planckResult.date, "America/Los_Angeles")} PST`}
-                  />
-                  <ClockRow
-                    label="London"
-                    value={`${formatDateTime(planckResult.date, "Europe/London")} GMT`}
-                  />
+                  {GMT_ZONES.map((zone) => (
+                    <ClockRow
+                      key={zone.label}
+                      label={zone.label}
+                      value={formatDateTime(planckResult.date, zone.tz)}
+                    />
+                  ))}
                 </div>
               )}
             </CardContent>
@@ -839,76 +792,6 @@ fn main() {
                 </li>
               </ul>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* ===== CODE SNIPPETS ===== */}
-        <Card className="border-border bg-card" data-ocid="code.card">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 font-semibold uppercase tracking-widest text-muted-foreground">
-              <Code2 size={12} />
-              Code Snippets
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="python" data-ocid="code.tab">
-              <TabsList className="bg-background border border-border mb-4">
-                <TabsTrigger
-                  value="python"
-                  className="font-mono"
-                  data-ocid="code.python.tab"
-                >
-                  Python
-                </TabsTrigger>
-                <TabsTrigger
-                  value="javascript"
-                  className="font-mono"
-                  data-ocid="code.javascript.tab"
-                >
-                  JavaScript
-                </TabsTrigger>
-                <TabsTrigger
-                  value="rust"
-                  className="font-mono"
-                  data-ocid="code.rust.tab"
-                >
-                  Rust
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="python">
-                <div className="relative">
-                  <pre className="border border-border p-4 overflow-x-auto font-mono leading-relaxed text-foreground">
-                    <code>{pythonCode}</code>
-                  </pre>
-                  <div className="absolute top-2 right-2">
-                    <CopyButton value={pythonCode} label="Python code" />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="javascript">
-                <div className="relative">
-                  <pre className="border border-border p-4 overflow-x-auto font-mono leading-relaxed text-foreground">
-                    <code>{jsCode}</code>
-                  </pre>
-                  <div className="absolute top-2 right-2">
-                    <CopyButton value={jsCode} label="JavaScript code" />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="rust">
-                <div className="relative">
-                  <pre className="border border-border p-4 overflow-x-auto font-mono leading-relaxed text-foreground">
-                    <code>{rustCode}</code>
-                  </pre>
-                  <div className="absolute top-2 right-2">
-                    <CopyButton value={rustCode} label="Rust code" />
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
           </CardContent>
         </Card>
 
